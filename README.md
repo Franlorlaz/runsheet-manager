@@ -1,2 +1,3 @@
-# runsheet-manager
-Web app to manage lab runsheets.
+# Runsheet Manager
+
+Custom web app to manage lab runsheets.
