@@ -1,0 +1,54 @@
+name: Check Generated Client
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  check-generated-client:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: "0.4.15"
+          enable-cache: true
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Install backend dependencies
+        run: uv sync
+        working-directory: backend
+
+      - name: Generate client
+        run: uv run bash scripts/generate-client.sh
+        env:
+          VIRTUAL_ENV: backend/.venv
+          SECRET_KEY: just-for-generating-client
+          POSTGRES_PASSWORD: just-for-generating-client
+          FIRST_SUPERUSER_PASSWORD: just-for-generating-client
+
+      - name: Check generated client is committed
+        run: |
+          git diff --quiet || (
+            echo "Generated client is out of date."
+            echo "Please run scripts/generate-client.sh and commit the changes."
+            exit 1
+          )
