@@ -90,7 +90,7 @@ But it would be only to clean them up, leaving them won't really have any effect
 
 - Start the Docker Compose stack.
 
-- Download the OpenAPI JSON file from `http://localhost/api/v1/openapi.json` and copy it to a new file `openapi.json` at the root of the `frontend` directory.
+- Download the OpenAPI JSON file from `http://localhost:8000/api/v1/openapi.json` and copy it to a new file `openapi.json` at the root of the `frontend` directory.
 
 - To generate the frontend client, run:
 
