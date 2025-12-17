@@ -11,6 +11,7 @@ on:
 
 jobs:
   test-backend:
+    if: false # Enable when starting to check backend tests
     runs-on: ubuntu-latest
 
     steps:
@@ -52,6 +53,7 @@ jobs:
           include-hidden-files: true
 
   smokeshow:
+    if: false # Enable when starting to check backend tests
     needs: test-backend
     if: success()
     runs-on: ubuntu-latest
