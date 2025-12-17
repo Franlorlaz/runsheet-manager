@@ -8,6 +8,7 @@ on:
 
 jobs:
   check-generated-client:
+    if: false # Enable when start to check frontend client generation
     runs-on: ubuntu-latest
     permissions:
       contents: read
