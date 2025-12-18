@@ -12,7 +12,7 @@ from app.schemas.item.item_creation import ItemCreate
 from app.schemas.item.item_updating import ItemUpdate
 from app.schemas.item.item_returns import ItemPublic, ItemsPublic
 
-from app.schemas import Message, Token, TokenPayload, NewPassword
+from app.schemas.general import Message, Token, TokenPayload, NewPassword
 
 
 # Database model, database table inferred from class name

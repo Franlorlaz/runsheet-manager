@@ -13,7 +13,7 @@ from app.api.deps import (
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import Item, User
-from app.schemas import Message
+from app.schemas.general import Message
 from app.schemas.user.user_updating import UpdatePassword, UserUpdate, UserUpdateMe
 from app.schemas.user.user_creation import UserCreate, UserRegister
 from app.schemas.user.user_returns import UserPublic, UsersPublic
