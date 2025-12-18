@@ -7,5 +7,4 @@ node_modules/
 .env
 .devcontainer/
 .copier/.copier-answers.yml
-frontend/package-lock.json
 .venv
