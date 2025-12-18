@@ -1,18 +1,9 @@
 import uuid
 
-from sqlmodel import Field, Relationship, SQLModel
-
-from app.schemas.user.user_base import UserBase
-from app.schemas.user.user_creation import UserCreate, UserRegister
-from app.schemas.user.user_updating import UserUpdate, UserUpdateMe, UpdatePassword
-from app.schemas.user.user_returns import UserPublic, UsersPublic
+from sqlmodel import Field, Relationship
 
 from app.schemas.item.item_base import ItemBase
-from app.schemas.item.item_creation import ItemCreate
-from app.schemas.item.item_updating import ItemUpdate
-from app.schemas.item.item_returns import ItemPublic, ItemsPublic
-
-from app.schemas.general import Message, Token, TokenPayload, NewPassword
+from app.schemas.user.user_base import UserBase
 
 
 # Database model, database table inferred from class name
