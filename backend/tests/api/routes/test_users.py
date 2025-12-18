@@ -172,9 +172,9 @@ def test_retrieve_users(
 def test_update_user_me(
     client: TestClient, normal_user_token_headers: dict[str, str], db: Session
 ) -> None:
-    full_name = "Updated Name"
+    name = "Updated Name"
     email = random_email()
-    data = {"full_name": full_name, "email": email}
+    data = {"name": name, "email": email}
     r = client.patch(
         f"{settings.API_V1_STR}/users/me",
         headers=normal_user_token_headers,
@@ -183,13 +183,13 @@ def test_update_user_me(
     assert r.status_code == 200
     updated_user = r.json()
     assert updated_user["email"] == email
-    assert updated_user["full_name"] == full_name
+    assert updated_user["name"] == name
 
     user_query = select(User).where(User.email == email)
     user_db = db.exec(user_query).first()
     assert user_db
     assert user_db.email == email
-    assert user_db.full_name == full_name
+    assert user_db.name == name
 
 
 def test_update_password_me(
@@ -286,8 +286,8 @@ def test_update_password_me_same_password_error(
 def test_register_user(client: TestClient, db: Session) -> None:
     username = random_email()
     password = random_lower_string()
-    full_name = random_lower_string()
-    data = {"email": username, "password": password, "full_name": full_name}
+    name = random_lower_string()
+    data = {"email": username, "password": password, "name": name}
     r = client.post(
         f"{settings.API_V1_STR}/users/signup",
         json=data,
@@ -295,23 +295,23 @@ def test_register_user(client: TestClient, db: Session) -> None:
     assert r.status_code == 200
     created_user = r.json()
     assert created_user["email"] == username
-    assert created_user["full_name"] == full_name
+    assert created_user["name"] == name
 
     user_query = select(User).where(User.email == username)
     user_db = db.exec(user_query).first()
     assert user_db
     assert user_db.email == username
-    assert user_db.full_name == full_name
+    assert user_db.name == name
     assert verify_password(password, user_db.hashed_password)
 
 
 def test_register_user_already_exists_error(client: TestClient) -> None:
     password = random_lower_string()
-    full_name = random_lower_string()
+    name = random_lower_string()
     data = {
         "email": settings.FIRST_SUPERUSER,
         "password": password,
-        "full_name": full_name,
+        "name": name,
     }
     r = client.post(
         f"{settings.API_V1_STR}/users/signup",
@@ -329,7 +329,7 @@ def test_update_user(
     user_in = UserCreate(email=username, password=password)
     user = crud.create_user(session=db, user_create=user_in)
 
-    data = {"full_name": "Updated_full_name"}
+    data = {"name": "Updated_name"}
     r = client.patch(
         f"{settings.API_V1_STR}/users/{user.id}",
         headers=superuser_token_headers,
@@ -338,19 +338,19 @@ def test_update_user(
     assert r.status_code == 200
     updated_user = r.json()
 
-    assert updated_user["full_name"] == "Updated_full_name"
+    assert updated_user["name"] == "Updated_name"
 
     user_query = select(User).where(User.email == username)
     user_db = db.exec(user_query).first()
     db.refresh(user_db)
     assert user_db
-    assert user_db.full_name == "Updated_full_name"
+    assert user_db.name == "Updated_name"
 
 
 def test_update_user_not_exists(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
-    data = {"full_name": "Updated_full_name"}
+    data = {"name": "Updated_name"}
     r = client.patch(
         f"{settings.API_V1_STR}/users/{uuid.uuid4()}",
         headers=superuser_token_headers,
