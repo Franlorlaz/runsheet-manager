@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import SQLModel
 
-from .ItemBase import ItemBase
+from .item_base import ItemBase
 
 
 # Properties to return via API, id is always required

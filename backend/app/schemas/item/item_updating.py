@@ -1,6 +1,6 @@
 from sqlmodel import Field
 
-from .ItemBase import ItemBase
+from .item_base import ItemBase
 
 
 # Properties to receive on item update

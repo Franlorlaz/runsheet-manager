@@ -2,7 +2,7 @@ import uuid
 
 from sqlmodel import SQLModel
 
-from .UserBase import UserBase
+from .user_base import UserBase
 
 
 # Properties to return via API, id is always required

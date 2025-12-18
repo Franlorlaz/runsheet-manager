@@ -2,12 +2,12 @@ import uuid
 
 from sqlmodel import Field, Relationship, SQLModel
 
-from app.schemas.user import UserBase
+from app.schemas.user.user_base import UserBase
 from app.schemas.user.user_creation import UserCreate, UserRegister
 from app.schemas.user.user_updating import UserUpdate, UserUpdateMe, UpdatePassword
 from app.schemas.user.user_returns import UserPublic, UsersPublic
 
-from app.schemas.item import ItemBase
+from app.schemas.item.item_base import ItemBase
 from app.schemas.item.item_creation import ItemCreate
 from app.schemas.item.item_updating import ItemUpdate
 from app.schemas.item.item_returns import ItemPublic, ItemsPublic
