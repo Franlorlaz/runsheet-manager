@@ -1,5 +1,6 @@
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
+from datetime import datetime, timezone
 
 from .user_base import UserBase
 
@@ -8,11 +9,13 @@ from .user_base import UserBase
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    updated_at: datetime | None = Field(default=datetime.now(timezone.utc))
 
 
 class UserUpdateMe(SQLModel):
     name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
+    updated_at: datetime | None = Field(default=datetime.now(timezone.utc))
 
 
 class UpdatePassword(SQLModel):

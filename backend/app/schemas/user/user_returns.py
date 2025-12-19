@@ -1,5 +1,6 @@
 import uuid
 
+from datetime import datetime
 from sqlmodel import SQLModel
 
 from .user_base import UserBase
@@ -8,6 +9,8 @@ from .user_base import UserBase
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
 
 
 class UsersPublic(SQLModel):

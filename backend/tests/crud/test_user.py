@@ -67,6 +67,22 @@ def test_check_if_user_is_superuser_normal_user(db: Session) -> None:
     assert user.is_superuser is False
 
 
+def test_check_if_user_is_reviewer(db: Session) -> None:
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password, is_reviewer=True)
+    user = crud.create_user(session=db, user_create=user_in)
+    assert user.is_reviewer is True
+
+
+def test_check_if_user_is_reviewer_false(db: Session) -> None:
+    username = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=username, password=password)
+    user = crud.create_user(session=db, user_create=user_in)
+    assert user.is_reviewer is False
+
+
 def test_get_user(db: Session) -> None:
     password = random_lower_string()
     username = random_email()
@@ -83,6 +99,7 @@ def test_update_user(db: Session) -> None:
     email = random_email()
     user_in = UserCreate(email=email, password=password, is_superuser=True)
     user = crud.create_user(session=db, user_create=user_in)
+    user_timestamp = user.updated_at
     new_password = random_lower_string()
     user_in_update = UserUpdate(password=new_password, is_superuser=True)
     if user.id is not None:
@@ -91,3 +108,4 @@ def test_update_user(db: Session) -> None:
     assert user_2
     assert user.email == user_2.email
     assert verify_password(new_password, user_2.hashed_password)
+    assert user_timestamp != user_2.updated_at

@@ -1,4 +1,30 @@
+from datetime import datetime, timezone
+from sqlalchemy import Column, DateTime, func
 from sqlmodel import Field, SQLModel
+
+
+# Mixin for timestamp fields
+class TimestampMixin(SQLModel):
+    # Make timestamps optional at the Pydantic level so creating models
+    # doesn't require providing them; the DB will fill them using
+    # server_default=func.now().
+    created_at: datetime | None = Field(
+        default=datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+        ),
+    )
+    updated_at: datetime | None = Field(
+        default=datetime.now(timezone.utc),
+        sa_column=Column(
+            DateTime(timezone=True),
+            nullable=False,
+            server_default=func.now(),
+            onupdate=func.now(),
+        ),
+    )
 
 
 # Generic message
