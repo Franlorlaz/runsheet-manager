@@ -1,6 +1,6 @@
+import sqlalchemy as sa
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
-import sqlalchemy as sa
 
 
 # Shared properties

@@ -1,6 +1,6 @@
 import uuid
-
 from datetime import datetime
+
 from sqlmodel import SQLModel
 
 from .user_base import UserBase

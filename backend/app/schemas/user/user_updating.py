@@ -1,6 +1,7 @@
+from datetime import datetime, timezone
+
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
-from datetime import datetime, timezone
 
 from .user_base import UserBase
 
