@@ -1,4 +1,4 @@
-import { Skeleton } from "@/components/ui/skeleton"
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -6,13 +6,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 const PendingUsers = () => (
   <Table>
     <TableHeader>
       <TableRow>
-        <TableHead>Full Name</TableHead>
+        <TableHead>Name</TableHead>
         <TableHead>Email</TableHead>
         <TableHead>Role</TableHead>
         <TableHead>Status</TableHead>
@@ -48,6 +48,6 @@ const PendingUsers = () => (
       ))}
     </TableBody>
   </Table>
-)
+);
 
-export default PendingUsers
+export default PendingUsers;
