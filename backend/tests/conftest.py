@@ -7,8 +7,11 @@ from sqlmodel import Session, delete
 
 from app.core.config import settings
 from app.core.db import engine, init_db
+from app.crud.runsheet import create_runsheet
+from app.enums.material import Material
 from app.main import app
 from app.models import Item, User
+from app.schemas.runsheet.creation import RunsheetCreate
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -42,6 +45,39 @@ def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]
         client=client, email=settings.EMAIL_TEST_USER, db=db
     )
 
+
+@pytest.fixture(scope="module")
+def superuser_id(db: Session) -> uuid.UUID:
+    user = User(
+        name="Superuser",
+        email="superuser@test.com",
+        is_superuser=True,
+        is_active=True,
+        is_reviewer=True,
+        hashed_password="fake",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user.id
+
+
+@pytest.fixture(scope="module")
+def reviewer_user_id(db: Session) -> uuid.UUID:
+    user = User(
+        name="Reviewer User",
+        email="reviewer_user@test.com",
+        is_superuser=False,
+        is_active=True,
+        is_reviewer=True,
+        hashed_password="fake",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user.id
+
+
 @pytest.fixture(scope="module")
 def basic_user_id(db: Session) -> uuid.UUID:
     user = User(
@@ -56,3 +92,16 @@ def basic_user_id(db: Session) -> uuid.UUID:
     db.commit()
     db.refresh(user)
     return user.id
+
+
+@pytest.fixture
+def runsheet(db: Session, basic_user_id):
+    runsheet_in = RunsheetCreate(
+        material=Material.silicon,
+        description="Initial description",
+    )
+    return create_runsheet(
+        db=db,
+        runsheet_in=runsheet_in,
+        creator_id=basic_user_id,
+    )
