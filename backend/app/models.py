@@ -178,7 +178,7 @@ class StepProcess(TimestampMixin, StepProcessBase, table=True):
     completed: bool = Field(default=False)
 
     # Relationships
-    engineer_id: uuid.UUID | None = Field(foreign_key="user.id", nullable=True, ondelete="SET NULL")
+    engineer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
     engineer: User | None = Relationship(back_populates="assigned_step_processes", sa_relationship_kwargs={"foreign_keys": "[StepProcess.engineer_id]"})
     runsheet_id: uuid.UUID = Field(foreign_key="runsheet.id", nullable=False, ondelete="CASCADE")
     runsheet: Runsheet | None = Relationship(back_populates="step_processes")

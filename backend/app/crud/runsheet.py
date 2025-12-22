@@ -35,3 +35,8 @@ def update_runsheet(*, db: Session, db_runsheet: Runsheet, runsheet_in: Runsheet
     db.commit()
     db.refresh(db_runsheet)
     return db_runsheet
+
+
+def delete_runsheet(*, db: Session, db_runsheet: Runsheet) -> None:
+    db.delete(db_runsheet)
+    db.commit()

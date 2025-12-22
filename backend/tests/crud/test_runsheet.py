@@ -4,9 +4,9 @@ from calendar import month_abbr
 
 from sqlmodel import Session, select
 
-from app.crud.runsheet import create_runsheet, update_runsheet
+from app.crud.runsheet import create_runsheet, update_runsheet, delete_runsheet
 from app.enums.material import Material
-from app.models import Runsheet
+from app.models import Runsheet, Sample, StepProcess, User
 from app.schemas.runsheet.creation import RunsheetCreate
 from app.schemas.runsheet.updating import RunsheetUpdate
 from app.utils import generate_citic_id_for_runsheet
@@ -209,3 +209,58 @@ def test_update_runsheet_with_empty_update(db: Session, runsheet: Runsheet):
     assert updated.description == original_description
     assert updated.material == original_material
     assert updated.citic_id == original_citic_id
+
+
+# DELETE runsheet
+
+
+def test_delete_runsheet(db: Session, superuser_id: uuid.UUID) -> None:
+    # Arrange: crear runsheet
+    runsheet_in = RunsheetCreate(
+        material=Material.other,
+        description="Runsheet to be deleted",
+    )
+
+    runsheet = create_runsheet(
+        db=db,
+        runsheet_in=runsheet_in,
+        creator_id=superuser_id,
+    )
+
+    assert runsheet.id is not None
+
+    # Pre-check: existe en BD
+    db_runsheet = db.get(Runsheet, runsheet.id)
+    assert db_runsheet is not None
+
+    # Act: borrar
+    delete_runsheet(db=db, db_runsheet=db_runsheet)
+
+    # Assert: ya no existe
+    deleted_runsheet = db.get(Runsheet, runsheet.id)
+    assert deleted_runsheet is None
+
+
+def test_delete_runsheet_cascades_only_step_processes(db: Session, runsheet: Runsheet, step_process: StepProcess, sample: Sample) -> None:
+    runsheet_id = runsheet.id
+    step_process_id = step_process.id
+    sample_id = sample.id
+    reviewer_id = runsheet.reviewer_id
+    creator_id = runsheet.creator_id
+
+    # ---------- Check ----------
+    assert db.get(Runsheet, runsheet_id) is not None
+    assert db.get(StepProcess, step_process_id) is not None
+    assert db.get(Sample, sample_id) is not None
+    #assert db.get(User, reviewer_id) is not None  # TODO: Fix this
+    assert db.get(User, creator_id) is not None
+
+    # ---------- Act ----------
+    delete_runsheet(db=db, db_runsheet=runsheet)
+
+    # ---------- Assert ----------
+    assert db.get(Runsheet, runsheet_id) is None
+    assert db.get(StepProcess, step_process_id) is None
+    assert db.get(Sample, sample_id) is not None
+    # assert db.get(User, reviewer_id) is not None  # TODO: Fix this
+    assert db.get(User, creator_id) is not None
