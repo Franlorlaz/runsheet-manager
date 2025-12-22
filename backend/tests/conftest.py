@@ -1,3 +1,4 @@
+import uuid
 from collections.abc import Generator
 
 import pytest
@@ -40,3 +41,18 @@ def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]
     return authentication_token_from_email(
         client=client, email=settings.EMAIL_TEST_USER, db=db
     )
+
+@pytest.fixture(scope="module")
+def basic_user_id(db: Session) -> uuid.UUID:
+    user = User(
+        name="Basic User",
+        email="basic_user@test.com",
+        is_superuser=False,
+        is_active=True,
+        is_reviewer=False,
+        hashed_password="fake",
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user.id

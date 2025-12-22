@@ -141,7 +141,7 @@ class Runsheet(TimestampMixin, RunsheetBase, table=True):
     state: RunsheetState = Field(default=RunsheetState.edit, sa_column=SQLEnum(RunsheetState))
 
     # Relationships
-    reviewer_id: uuid.UUID | None = Field(foreign_key="user.id", nullable=True, ondelete="SET NULL")
+    reviewer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
     reviewer: User | None = Relationship(back_populates="runsheets_reviewed", sa_relationship_kwargs={"foreign_keys": "[Runsheet.reviewer_id]"})
     step_processes: list["StepProcess"] = Relationship(back_populates="runsheet", cascade_delete=True)
     samples: list["Sample"] = Relationship(

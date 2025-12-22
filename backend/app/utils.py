@@ -1,4 +1,5 @@
 import logging
+from calendar import month_abbr
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -121,3 +122,43 @@ def verify_password_reset_token(token: str) -> str | None:
         return str(decoded_token["sub"])
     except InvalidTokenError:
         return None
+
+
+def generate_citic_id_for_runsheet(citic_ids: list[str], prefix: str | None = None, prefix_only: bool = False) -> str:
+    """Generate a unique citic_id for a runsheet.
+
+    Format of citic_id: YYmmm-000
+        YY - last two digits of the year
+        mmm - three-letter month abbreviation in lowercase
+        000 - counter starting from 001 for each month
+
+    Example:
+        25dic-001, 25dic-002, 25feb-001
+    """
+    if prefix:
+        date_prefix = prefix
+    else:
+        today = datetime.today()
+        year = today.strftime("%y")
+        month = month_abbr[today.month].lower()
+        date_prefix = f"{year}{month}-"
+
+    if prefix_only:
+        return date_prefix
+
+    max_counter = 0
+
+    for citic_id in citic_ids:
+        if not citic_id.startswith(date_prefix):
+            continue
+
+        try:
+            counter_part = citic_id.split("-")[1]
+            counter = int(counter_part)
+        except (IndexError, ValueError):
+            continue
+
+        max_counter = max(max_counter, counter)
+
+    next_counter = max_counter + 1
+    return f"{date_prefix}{next_counter:003d}"
