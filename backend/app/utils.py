@@ -159,3 +159,44 @@ def generate_citic_id_for_runsheet(citic_ids: Sequence[str], prefix: str | None 
         return f"{date_prefix}{next_counter:003d}"
     else:
         return date_prefix
+
+
+def generate_citic_id_for_sample(citic_ids: Sequence[str], prefix: str | None = None, prefix_only: bool = False) -> str:  # TODO: check function
+    """Generate a unique citic_id for a sample.
+
+    Format of citic_id: YYMMDD-000
+        YY - last two digits of the year
+        MM - two-digit month number
+        DD - two-digit day of the month
+        000 - counter starting from 001 for each day
+
+    Example:
+        251201-001, 251201-002, 251202-001
+    """
+    if prefix:
+        date_prefix = prefix
+    else:
+        today = datetime.today()
+        year = today.strftime("%y")
+        month = today.month
+        day = today.day
+        date_prefix = f"{year}{month:02d}{day:02d}-"
+    
+    counter = 1
+    citic_id = f"{date_prefix}{counter:003d}"
+
+    if not prefix_only:
+        max_counter = 0
+        for citic_id in citic_ids:
+            if not citic_id.startswith(date_prefix):
+                continue
+            try:
+                counter_part = citic_id.split("-")[1]
+                counter = int(counter_part)
+            except (IndexError, ValueError):
+                continue
+            max_counter = max(max_counter, counter)
+        next_counter = max_counter + 1
+        return f"{date_prefix}{next_counter:003d}"
+    else:
+        return date_prefix

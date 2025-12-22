@@ -9,6 +9,8 @@ from app.schemas.runsheet.updating import RunsheetUpdate
 from app.utils import generate_citic_id_for_runsheet
 
 
+# Basic CRUD
+
 def create_runsheet(*, db: Session, runsheet_in: RunsheetCreate, creator_id: uuid.UUID) -> Runsheet:
     prefix = generate_citic_id_for_runsheet([], prefix_only=True)
     existing_citic_ids = db.exec(
@@ -40,3 +42,37 @@ def update_runsheet(*, db: Session, db_runsheet: Runsheet, runsheet_in: Runsheet
 def delete_runsheet(*, db: Session, db_runsheet: Runsheet) -> None:
     db.delete(db_runsheet)
     db.commit()
+
+
+# TODO: Funciones por hacer + Tests
+
+
+# Attach Relationships
+
+def attach_reviewer_to_runsheet() -> Runsheet:
+    pass
+
+
+def attach_set_processes_to_runsheet() -> Runsheet:
+    pass
+
+
+def attach_samples_to_runsheet() -> Runsheet:
+    pass
+
+
+# Special Functions
+
+def upgrade_runsheet_state() -> Runsheet:
+    pass
+
+
+
+# Readers and Indexers
+
+def get_runsheet_by_id(citic_id: str | None = None) -> Runsheet:
+    pass
+
+
+def get_runsheets(filters, sorters) -> list[Runsheet]:
+    pass
