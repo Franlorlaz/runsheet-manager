@@ -1,4 +1,4 @@
-from .item_base import ItemBase
+from .base import ItemBase
 
 
 # Properties to receive on item creation

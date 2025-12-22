@@ -3,7 +3,7 @@ from datetime import datetime
 
 from sqlmodel import SQLModel
 
-from .user_base import UserBase
+from .base import UserBase
 
 
 # Properties to return via API, id is always required

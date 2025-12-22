@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
 
-from .user_base import UserBase
+from .base import UserBase
 
 
 # Properties to receive via API on creation
