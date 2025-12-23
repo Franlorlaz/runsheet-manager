@@ -28,7 +28,7 @@ def test_generate_next_citic_id_with_existing(db: Session, superuser_id: uuid.UU
     assert citic_id == f"{prefix}004"
 
 
-# CREATE Runsheet
+# CREATE
 
 def test_create_runsheet_generates_citic_id(db: Session, superuser_id: uuid.UUID):
     runsheet_in = RunsheetCreate(
@@ -74,7 +74,7 @@ def test_citic_id_is_unique(db: Session, superuser_id: uuid.UUID):
     assert len(citic_ids) == len(set(citic_ids))
 
 
-# UPDATE runsheet
+# UPDATE
 
 def test_update_runsheet_description(db: Session, superuser_id: uuid.UUID):
     runsheet = create_basic_runsheet(db=db, creator_id=superuser_id)
@@ -172,7 +172,7 @@ def test_update_runsheet_with_empty_update(db: Session, superuser_id: uuid.UUID)
     assert updated.citic_id == original_citic_id
 
 
-# DELETE runsheet
+# DELETE
 
 
 def test_delete_runsheet(db: Session, superuser_id: uuid.UUID) -> None:
@@ -202,7 +202,7 @@ def test_delete_runsheet(db: Session, superuser_id: uuid.UUID) -> None:
     assert deleted_runsheet is None
 
 
-def test_delete_runsheet_cascades_only_step_processes(db: Session, superuser_id: uuid.UUID) -> None:
+def test_delete_runsheet_cascades(db: Session, superuser_id: uuid.UUID) -> None:
     pass
     """
     runsheet_id = runsheet.id
