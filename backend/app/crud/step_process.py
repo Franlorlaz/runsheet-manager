@@ -3,8 +3,7 @@ import uuid
 from sqlmodel import Session, select
 
 from app.models import StepProcess, User
-from app.schemas.step_process.creation import StepProcessCreate
-from app.schemas.step_process.updating import StepProcessUpdate
+from app.schemas.step_process import StepProcessCreate, StepProcessUpdate
 from app.utils import upgrade_str_counter
 
 

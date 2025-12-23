@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.core.security import verify_password
 from app.crud.user import create_user, get_user_by_email
 from app.models import User
-from app.schemas.user.creation import UserCreate
+from app.schemas.user import UserCreate
 from tests.utils.utils import random_email, random_lower_string
 
 

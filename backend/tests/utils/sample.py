@@ -7,8 +7,7 @@ from sqlmodel import Session
 from app. crud.runsheet import create_runsheet
 from app.enums.material import Material
 from app.models import Sample
-from app.schemas.sample.creation import SampleCreate
-from app.schemas.user.updating import UserUpdate
+from app.schemas.sample import SampleCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 

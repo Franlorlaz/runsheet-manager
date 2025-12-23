@@ -4,8 +4,7 @@ from datetime import datetime
 from sqlmodel import Session, select
 
 from app.models import Sample, User
-from app.schemas.sample.creation import SampleCreate
-from app.schemas.sample.updating import SampleUpdate
+from app.schemas.sample import SampleCreate, SampleUpdate
 from app.utils import upgrade_str_counter
 
 

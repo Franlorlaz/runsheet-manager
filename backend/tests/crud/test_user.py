@@ -4,8 +4,7 @@ from sqlmodel import Session
 from app.core.security import verify_password
 from app.crud.user import authenticate, create_user, update_user
 from app.models import User
-from app.schemas.user.creation import UserCreate
-from app.schemas.user.updating import UserUpdate
+from app.schemas.user import UserCreate, UserUpdate
 from tests.utils.utils import random_email, random_lower_string
 
 

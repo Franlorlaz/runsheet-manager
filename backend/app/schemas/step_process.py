@@ -6,6 +6,11 @@ from sqlmodel import Field, SQLModel
 from app.enums.step_system import StepSystem
 
 
+# Shared properties
+class StepProcessBase(SQLModel):
+    title: str = Field(default=None, max_length=255)
+
+
 # Properties to receive via API on creation
 class StepProcessCreate(SQLModel):
     title: str | None = Field(default=None, max_length=255)
@@ -19,3 +24,14 @@ class StepProcessCreate(SQLModel):
     step_number: int = Field(default=0)
     runsheet_id: uuid.UUID = Field(foreign_key="runsheet.id", nullable=False, ondelete="CASCADE")
     creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+
+
+# Properties to receive via API on update
+class StepProcessUpdate(SQLModel):
+    title: str | None
+    details: str | None
+    system: StepSystem | None
+    machine_time: float | None
+    engineer_time: float | None
+    date_completed: datetime | None
+    engineer_id: uuid.UUID | None

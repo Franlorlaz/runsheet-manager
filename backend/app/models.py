@@ -16,11 +16,11 @@ from app.enums.runsheet_state import RunsheetState
 from app.enums.sample_type import SampleType
 from app.enums.step_system import StepSystem
 from app.schemas.general import TimestampMixin
-from app.schemas.item.base import ItemBase
-from app.schemas.runsheet.base import RunsheetBase
-from app.schemas.sample.base import SampleBase
-from app.schemas.step_process.base import StepProcessBase
-from app.schemas.user.base import UserBase
+from app.schemas.item import ItemBase
+from app.schemas.runsheet import RunsheetBase
+from app.schemas.sample import SampleBase
+from app.schemas.step_process import StepProcessBase
+from app.schemas.user import UserBase
 
 
 # PIVOT TABLES

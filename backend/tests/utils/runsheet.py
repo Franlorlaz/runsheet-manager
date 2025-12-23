@@ -7,7 +7,7 @@ from sqlmodel import Session
 from app. crud.runsheet import create_runsheet
 from app.enums.material import Material
 from app.models import Runsheet
-from app.schemas.runsheet.creation import RunsheetCreate
+from app.schemas.runsheet import RunsheetCreate
 
 
 def citic_id_current_prefix() -> str:

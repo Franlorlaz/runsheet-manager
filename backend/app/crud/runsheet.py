@@ -6,8 +6,7 @@ from sqlmodel import Session, select
 
 from app.enums.runsheet_state import RunsheetState
 from app.models import Runsheet
-from app.schemas.runsheet.creation import RunsheetCreate
-from app.schemas.runsheet.updating import RunsheetUpdate
+from app.schemas.runsheet import RunsheetCreate, RunsheetUpdate
 from app.utils import upgrade_str_counter
 
 

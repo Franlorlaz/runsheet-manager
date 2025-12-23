@@ -5,8 +5,7 @@ from sqlmodel import Session, select
 from app.crud.runsheet import create_runsheet, delete_runsheet, generate_citic_id, update_runsheet
 from app.enums.material import Material
 from app.models import Runsheet
-from app.schemas.runsheet.creation import RunsheetCreate
-from app.schemas.runsheet.updating import RunsheetUpdate
+from app.schemas.runsheet import RunsheetCreate, RunsheetUpdate
 from tests.utils.runsheet import citic_id_current_prefix, create_basic_runsheet
 
 

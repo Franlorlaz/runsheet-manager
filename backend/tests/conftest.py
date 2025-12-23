@@ -14,7 +14,7 @@ from app.crud.user import get_user_by_email
 from app.enums.material import Material
 from app.main import app
 from app.models import Item, Runsheet, Sample, StepProcess, User
-from app.schemas.runsheet.creation import RunsheetCreate
+from app.schemas.runsheet import RunsheetCreate
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 

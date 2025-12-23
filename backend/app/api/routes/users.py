@@ -16,9 +16,7 @@ from app.crud.user import get_user_by_email
 from app.crud.user import update_user as crud_update_user
 from app.models import Item, User
 from app.schemas.general import Message
-from app.schemas.user.creation import UserCreate, UserRegister
-from app.schemas.user.returns import UserPublic, UsersPublic
-from app.schemas.user.updating import UpdatePassword, UserUpdate, UserUpdateMe
+from app.schemas.user import UserCreate, UpdatePassword, UserPublic, UsersPublic, UserRegister,  UserUpdate, UserUpdateMe
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
