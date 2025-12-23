@@ -1,5 +1,4 @@
 import logging
-from calendar import month_abbr
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -125,78 +124,19 @@ def verify_password_reset_token(token: str) -> str | None:
         return None
 
 
-def generate_citic_id_for_runsheet(citic_ids: Sequence[str], prefix: str | None = None, prefix_only: bool = False) -> str:
-    """Generate a unique citic_id for a runsheet.
-
-    Format of citic_id: YYmmm-000
-        YY - last two digits of the year
-        mmm - three-letter month abbreviation in lowercase
-        000 - counter starting from 001 for each month
-
-    Example:
-        25dic-001, 25dic-002, 25feb-001
-    """
+def upgrade_str_id_counter(str_ids: Sequence[str], prefix=None) -> str | int:
+    max_counter = 0
+    for str_id in str_ids:
+        if prefix and not str_id.startswith(prefix):
+            continue
+        try:
+            counter_part = str_id.split("-")[1]
+            counter = int(counter_part)
+        except (IndexError, ValueError):
+            continue
+        max_counter = max(max_counter, counter)
+    next_counter = max_counter + 1
     if prefix:
-        date_prefix = prefix
+        return f"{prefix}{next_counter:003d}"
     else:
-        today = datetime.today()
-        year = today.strftime("%y")
-        month = month_abbr[today.month].lower()
-        date_prefix = f"{year}{month}-"
-
-    if not prefix_only:
-        max_counter = 0
-        for citic_id in citic_ids:
-            if not citic_id.startswith(date_prefix):
-                continue
-            try:
-                counter_part = citic_id.split("-")[1]
-                counter = int(counter_part)
-            except (IndexError, ValueError):
-                continue
-            max_counter = max(max_counter, counter)
-        next_counter = max_counter + 1
-        return f"{date_prefix}{next_counter:003d}"
-    else:
-        return date_prefix
-
-
-def generate_citic_id_for_sample(citic_ids: Sequence[str], prefix: str | None = None, prefix_only: bool = False) -> str:  # TODO: check function
-    """Generate a unique citic_id for a sample.
-
-    Format of citic_id: YYMMDD-000
-        YY - last two digits of the year
-        MM - two-digit month number
-        DD - two-digit day of the month
-        000 - counter starting from 001 for each day
-
-    Example:
-        251201-001, 251201-002, 251202-001
-    """
-    if prefix:
-        date_prefix = prefix
-    else:
-        today = datetime.today()
-        year = today.strftime("%y")
-        month = today.month
-        day = today.day
-        date_prefix = f"{year}{month:02d}{day:02d}-"
-    
-    counter = 1
-    citic_id = f"{date_prefix}{counter:003d}"
-
-    if not prefix_only:
-        max_counter = 0
-        for citic_id in citic_ids:
-            if not citic_id.startswith(date_prefix):
-                continue
-            try:
-                counter_part = citic_id.split("-")[1]
-                counter = int(counter_part)
-            except (IndexError, ValueError):
-                continue
-            max_counter = max(max_counter, counter)
-        next_counter = max_counter + 1
-        return f"{date_prefix}{next_counter:003d}"
-    else:
-        return date_prefix
+        return next_counter

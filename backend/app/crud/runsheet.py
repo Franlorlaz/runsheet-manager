@@ -1,4 +1,6 @@
 import uuid
+from calendar import month_abbr
+from datetime import datetime
 
 from sqlmodel import Session, select
 
@@ -6,22 +8,41 @@ from app.enums.runsheet_state import RunsheetState
 from app.models import Runsheet
 from app.schemas.runsheet.creation import RunsheetCreate
 from app.schemas.runsheet.updating import RunsheetUpdate
-from app.utils import generate_citic_id_for_runsheet
+from app.utils import upgrade_str_id_counter
+
+
+# Utils
+
+def generate_citic_id(*, db: Session) -> str:
+    """Generate a unique citic_id for a runsheet.
+
+    Format of citic_id: YYmmm-000
+        YY - last two digits of the year
+        mmm - three-letter month abbreviation in lowercase
+        000 - counter starting from 001 for each month
+
+    Example:
+        25dic-001, 25dic-002, 25feb-001
+    """
+    today = datetime.today()
+    year = today.strftime("%y")
+    month = month_abbr[today.month].lower()
+    date_prefix = f"{year}{month}-"
+
+    existing_citic_ids = db.exec(
+        select(Runsheet.citic_id).where(Runsheet.citic_id.startswith(date_prefix))
+    ).all()
+
+    return upgrade_str_id_counter(existing_citic_ids, prefix=date_prefix)
 
 
 # Basic CRUD
 
 def create_runsheet(*, db: Session, runsheet_in: RunsheetCreate, creator_id: uuid.UUID) -> Runsheet:
-    prefix = generate_citic_id_for_runsheet([], prefix_only=True)
-    existing_citic_ids = db.exec(
-        select(Runsheet.citic_id).where(Runsheet.citic_id.startswith(prefix))
-    ).all()
-    citic_id = generate_citic_id_for_runsheet(existing_citic_ids, prefix=prefix)
-
     auto_update = {
         "creator_id": creator_id,
         "state": RunsheetState.edit,
-        "citic_id": citic_id,
+        "citic_id": generate_citic_id(db=db),
     }
     db_runsheet = Runsheet.model_validate(runsheet_in, update=auto_update)
     db.add(db_runsheet)
