@@ -8,11 +8,11 @@ from sqlmodel import Field, SQLModel
 
 # Shared properties
 class UserBase(SQLModel):
-    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    email: EmailStr = Field(max_length=255)
+    name: str | None = Field(default=None, max_length=255)
     is_active: bool = True
     is_superuser: bool = False
-    is_reviewer: bool = Field(default=False, sa_column=sa.Column(sa.Boolean(), nullable=False, server_default=sa.false()))
-    name: str | None = Field(default=None, max_length=255)
+    is_reviewer: bool = False
 
 
 # Properties to receive via API on creation
@@ -30,13 +30,13 @@ class UserRegister(SQLModel):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore
     password: str | None = Field(default=None, min_length=8, max_length=128)
-    updated_at: datetime | None = Field(default=datetime.now(timezone.utc))
+    updated_at: datetime = Field(default=datetime.now(timezone.utc))
 
 
 class UserUpdateMe(SQLModel):
     name: str | None = Field(default=None, max_length=255)
     email: EmailStr | None = Field(default=None, max_length=255)
-    updated_at: datetime | None = Field(default=datetime.now(timezone.utc))
+    updated_at: datetime = Field(default=datetime.now(timezone.utc))
 
 
 class UpdatePassword(SQLModel):

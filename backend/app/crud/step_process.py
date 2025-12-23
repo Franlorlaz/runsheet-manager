@@ -10,6 +10,7 @@ from app.utils import upgrade_str_counter
 # Basic CRUD
 
 def create_step_process(*, db: Session, step_process_in: StepProcessCreate, creator_id: uuid.UUID, runsheet_id: uuid.UUID | None, step_number: int | None = None) -> StepProcess:
+    step_data = step_process_in.model_dump(exclude_unset=True)
     if not step_number:
         existing_step_numbers: list[str] = [
             str(n)
@@ -21,7 +22,7 @@ def create_step_process(*, db: Session, step_process_in: StepProcessCreate, crea
         "runsheet_id": runsheet_id,
         "creator_id": creator_id,
     }
-    db_step_process = StepProcess.model_validate(step_process_in, update=auto_update)
+    db_step_process = StepProcess.model_validate(step_data, update=auto_update)
     db.add(db_step_process)
     db.commit()
     db.refresh(db_step_process)
@@ -29,8 +30,8 @@ def create_step_process(*, db: Session, step_process_in: StepProcessCreate, crea
 
 
 def update_step_process(*, db: Session, db_step_process: StepProcess, step_process_in: StepProcessUpdate) -> StepProcess:
-    setp_data = step_process_in.model_dump(exclude_unset=True)
-    db_step_process.sqlmodel_update(setp_data)
+    step_data = step_process_in.model_dump(exclude_unset=True)
+    db_step_process.sqlmodel_update(step_data)
     db.add(db_step_process)
     db.commit()
     db.refresh(db_step_process)

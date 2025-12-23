@@ -38,13 +38,14 @@ def generate_citic_id(*, db: Session) -> str:
 # Basic CRUD
 
 def create_sample(*, db: Session, sample_in: SampleCreate, creator_id: uuid.UUID, parent_sample_id: uuid.UUID | None) -> Sample:
+    sample_data = sample_in.model_dump(exclude_unset=True)
     auto_update = {
         "creator_id": creator_id,
         "citic_id": generate_citic_id(db=db),
         "parent_sample_id": parent_sample_id,
         "supervisors": [db.get(User, creator_id)],
     }
-    db_sample = Sample.model_validate(sample_in, update=auto_update)
+    db_sample = Sample.model_validate(sample_data, update=auto_update)
     db.add(db_sample)
     db.commit()
     db.refresh(db_sample)

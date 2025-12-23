@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 from typing import Optional
 
+from pydantic import EmailStr
 from sqlalchemy import Boolean, Column, DateTime, false
 from sqlalchemy import Enum as SQLEnum
 from sqlmodel import Field, Relationship, SQLModel
@@ -16,11 +17,6 @@ from app.enums.runsheet_state import RunsheetState
 from app.enums.sample_type import SampleType
 from app.enums.step_system import StepSystem
 from app.schemas.general import TimestampMixin
-from app.schemas.item import ItemBase
-from app.schemas.runsheet import RunsheetBase
-from app.schemas.sample import SampleBase
-from app.schemas.step_process import StepProcessBase
-from app.schemas.user import UserBase
 
 
 # PIVOT TABLES
@@ -44,11 +40,17 @@ class RunsheetSampleLink(SQLModel, table=True):
 
 
 # USER
-class User(TimestampMixin, UserBase, table=True):
+class User(TimestampMixin, table=True):
+    # Required Fields
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-
-    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    email: EmailStr = Field(unique=True, index=True, max_length=255)
+    
+    # Optional Fields
+    name: str | None = Field(default=None, max_length=255)
+    is_active: bool = True
+    is_superuser: bool = False
+    is_reviewer: bool = Field(default=False, sa_column=Column(Boolean(), nullable=False, server_default=false()))
 
     # Creation relationships
     created_samples: list["Sample"] = Relationship(back_populates="creator", cascade_delete=True, sa_relationship_kwargs={"foreign_keys": "[Sample.creator_id]"})
@@ -67,6 +69,7 @@ class User(TimestampMixin, UserBase, table=True):
     )
     runsheets_reviewed: list["Runsheet"] = Relationship(back_populates="reviewer", sa_relationship_kwargs={"foreign_keys": "[Runsheet.reviewer_id]"})
     assigned_step_processes: list["StepProcess"] = Relationship(back_populates="engineer", sa_relationship_kwargs={"foreign_keys": "[StepProcess.engineer_id]"})
+    items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
 
     # String representation
     def __repr__(self) -> str:
@@ -74,28 +77,41 @@ class User(TimestampMixin, UserBase, table=True):
 
 
 # ITEM
-class Item(ItemBase, table=True):
+class Item(SQLModel, table=True):
+    # Required Fields
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     owner_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    title: str = Field(min_length=1, max_length=255)
+
+    # Optional Fields
+    description: str | None = Field(default=None, max_length=255)
+
+    # Relationships
     owner: User | None = Relationship(back_populates="items")
+
+    # String representation
+    def __repr__(self) -> str:
+        return f"<Item id={self.id} owner_id={self.owner_id} title={self.title}>"
 
 
 # SAMPLE
-class Sample(TimestampMixin, SampleBase, table=True):
+class Sample(TimestampMixin, table=True):
+    # Required Fields
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    citic_id: str = Field(unique=True, index=True, max_length=255)
+    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+
+    # Optional Fields
+    parent_sample_id: uuid.UUID | None = Field(default=None, foreign_key="sample.id", nullable=True)
+    name: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None, max_length=2048)
     notes: str | None = Field(default=None, max_length=2048)
-
     exist: bool = Field(default=True)
     location: str | None = Field(default=None, max_length=255)
     type: SampleType = Field(default=SampleType.other, sa_column=SQLEnum(SampleType))
     material: Material = Field(default=Material.other, sa_column=SQLEnum(Material))
 
     # Relationships
-    parent_sample_id: uuid.UUID | None = Field(default=None, foreign_key="sample.id", nullable=True)
-    parent_sample: Optional["Sample"] = Relationship(back_populates="derived_samples", sa_relationship_kwargs={"remote_side": "Sample.id"})
-    derived_samples: list["Sample"] = Relationship(back_populates="parent_sample", sa_relationship_kwargs={"cascade": "save-update"})
-
     supervisors: list["User"] = Relationship(
         back_populates="samples_supervised",
         link_model=SampleSupervisorLink,
@@ -123,9 +139,8 @@ class Sample(TimestampMixin, SampleBase, table=True):
             "foreign_keys": "[SampleStepProcessLink.sample_id, SampleStepProcessLink.step_process_id]"
         }
     )
-
-    # Creation relationship
-    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    parent_sample: Optional["Sample"] = Relationship(back_populates="derived_samples", sa_relationship_kwargs={"remote_side": "Sample.id"})
+    derived_samples: list["Sample"] = Relationship(back_populates="parent_sample", sa_relationship_kwargs={"cascade": "save-update"})
     creator: User | None = Relationship(back_populates="created_samples", sa_relationship_kwargs={"foreign_keys": "[Sample.creator_id]"})
 
     # String representation
@@ -134,16 +149,19 @@ class Sample(TimestampMixin, SampleBase, table=True):
 
 
 # RUNSHEET
-class Runsheet(TimestampMixin, RunsheetBase, table=True):
+class Runsheet(TimestampMixin, table=True):
+    # Required Fields
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    citic_id: str = Field(unique=True, index=True, max_length=255)
+    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+
+    # Optional Fields
+    reviewer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
     material: Material = Field(default=Material.other, sa_column=SQLEnum(Material))
     description: str | None = Field(default=None, max_length=1024)
     state: RunsheetState = Field(default=RunsheetState.edit, sa_column=SQLEnum(RunsheetState))
 
     # Relationships
-    reviewer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
-    reviewer: User | None = Relationship(back_populates="runsheets_reviewed", sa_relationship_kwargs={"foreign_keys": "[Runsheet.reviewer_id]"})
-    step_processes: list["StepProcess"] = Relationship(back_populates="runsheet", cascade_delete=True)
     samples: list["Sample"] = Relationship(
         back_populates="runsheets",
         link_model=RunsheetSampleLink,
@@ -153,9 +171,8 @@ class Runsheet(TimestampMixin, RunsheetBase, table=True):
             "foreign_keys": "[RunsheetSampleLink.runsheet_id, RunsheetSampleLink.sample_id]"
         }
     )
-
-    # Creation relationship
-    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    step_processes: list["StepProcess"] = Relationship(back_populates="runsheet", cascade_delete=True)
+    reviewer: User | None = Relationship(back_populates="runsheets_reviewed", sa_relationship_kwargs={"foreign_keys": "[Runsheet.reviewer_id]"})
     creator: User | None = Relationship(back_populates="created_runsheets", sa_relationship_kwargs={"foreign_keys": "[Runsheet.creator_id]"})
 
     # String representation
@@ -164,13 +181,20 @@ class Runsheet(TimestampMixin, RunsheetBase, table=True):
 
 
 # STEP PROCESS
-class StepProcess(TimestampMixin, StepProcessBase, table=True):
+class StepProcess(TimestampMixin, table=True):
     __tablename__ = "step_process"
+
+    # Required Fields
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     step_number: int = Field(default=0)
-    details: str = Field(default=None, max_length=2048)
-    notes: str | None = Field(default=None, max_length=2048)
+    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    runsheet_id: uuid.UUID = Field(foreign_key="runsheet.id", nullable=False, ondelete="CASCADE")
 
+    # Optional Fields
+    engineer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
+    title: str = Field(default="", max_length=255)
+    details: str = Field(default="", max_length=2048)
+    notes: str | None = Field(default=None, max_length=2048)
     system: StepSystem = Field(default=StepSystem.other, sa_column=SQLEnum(StepSystem))
     machine_time: float = Field(default=0.0)
     engineer_time: float = Field(default=0.0)
@@ -178,10 +202,6 @@ class StepProcess(TimestampMixin, StepProcessBase, table=True):
     completed: bool = Field(default=False)
 
     # Relationships
-    engineer_id: uuid.UUID | None = Field(default=None, foreign_key="user.id", nullable=True, ondelete="SET NULL")
-    engineer: User | None = Relationship(back_populates="assigned_step_processes", sa_relationship_kwargs={"foreign_keys": "[StepProcess.engineer_id]"})
-    runsheet_id: uuid.UUID = Field(foreign_key="runsheet.id", nullable=False, ondelete="CASCADE")
-    runsheet: Runsheet | None = Relationship(back_populates="step_processes")
     samples: list["Sample"] = Relationship(
         back_populates="step_processes",
         link_model=SampleStepProcessLink,
@@ -191,9 +211,8 @@ class StepProcess(TimestampMixin, StepProcessBase, table=True):
             "foreign_keys": "[SampleStepProcessLink.step_process_id, SampleStepProcessLink.sample_id]"
         }
     )
-
-    # Creation relationship
-    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    runsheet: Runsheet | None = Relationship(back_populates="step_processes")
+    engineer: User | None = Relationship(back_populates="assigned_step_processes", sa_relationship_kwargs={"foreign_keys": "[StepProcess.engineer_id]"})
     creator: User | None = Relationship(back_populates="created_step_processes", sa_relationship_kwargs={"foreign_keys": "[StepProcess.creator_id]"})
 
     # String representation
