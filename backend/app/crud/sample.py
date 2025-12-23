@@ -6,7 +6,7 @@ from sqlmodel import Session, select
 from app.models import Sample, User
 from app.schemas.sample.creation import SampleCreate
 from app.schemas.sample.updating import SampleUpdate
-from app.utils import upgrade_str_id_counter
+from app.utils import upgrade_str_counter
 
 
 # Utils
@@ -33,7 +33,7 @@ def generate_citic_id(*, db: Session) -> str:
         select(Sample.citic_id).where(Sample.citic_id.startswith(date_prefix))
     ).all()
 
-    return upgrade_str_id_counter(existing_citic_ids, prefix=date_prefix)
+    return upgrade_str_counter(existing_citic_ids, prefix=date_prefix)
 
 
 # TODO: Revisa estas funciones + Haz lo Tests

@@ -124,13 +124,13 @@ def verify_password_reset_token(token: str) -> str | None:
         return None
 
 
-def upgrade_str_id_counter(str_ids: Sequence[str], prefix=None) -> str | int:
+def upgrade_str_counter(str_ids: Sequence[str], prefix=None) -> str | int:
     max_counter = 0
     for str_id in str_ids:
         if prefix and not str_id.startswith(prefix):
             continue
         try:
-            counter_part = str_id.split("-")[1]
+            counter_part = str_id.split("-")[-1]
             counter = int(counter_part)
         except (IndexError, ValueError):
             continue

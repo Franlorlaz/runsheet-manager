@@ -8,7 +8,7 @@ from app.enums.runsheet_state import RunsheetState
 from app.models import Runsheet
 from app.schemas.runsheet.creation import RunsheetCreate
 from app.schemas.runsheet.updating import RunsheetUpdate
-from app.utils import upgrade_str_id_counter
+from app.utils import upgrade_str_counter
 
 
 # Utils
@@ -33,7 +33,7 @@ def generate_citic_id(*, db: Session) -> str:
         select(Runsheet.citic_id).where(Runsheet.citic_id.startswith(date_prefix))
     ).all()
 
-    return upgrade_str_id_counter(existing_citic_ids, prefix=date_prefix)
+    return upgrade_str_counter(existing_citic_ids, prefix=date_prefix)
 
 
 # Basic CRUD
