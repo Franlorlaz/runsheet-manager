@@ -33,7 +33,7 @@ def generate_citic_id(*, db: Session) -> str:
         select(Sample.citic_id).where(Sample.citic_id.startswith(date_prefix))
     ).all()
 
-    return upgrade_str_counter(existing_citic_ids, prefix=date_prefix)
+    return str(upgrade_str_counter(existing_citic_ids, prefix=date_prefix))
 
 
 # TODO: Revisa estas funciones + Haz lo Tests

@@ -18,7 +18,7 @@ def create_step_process(*, db: Session, step_process_in: StepProcessCreate, crea
             str(n)
             for n in db.exec(select(StepProcess.step_number).where(StepProcess.runsheet_id == runsheet_id)).all()
         ]
-        step_number = upgrade_str_counter(existing_step_numbers)
+        step_number = int(upgrade_str_counter(existing_step_numbers))
     auto_update = {
         "step_number": step_number,
         "runsheet_id": runsheet_id,

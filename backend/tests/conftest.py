@@ -3,11 +3,14 @@ from collections.abc import Generator
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlmodel import Session, delete
+from sqlmodel import Session, select
 
+from app.api.deps import get_db
 from app.core.config import settings
 from app.core.db import engine, init_db
+from app.core.security import get_password_hash
 from app.crud.runsheet import create_runsheet
+from app.crud.user import get_user_by_email
 from app.enums.material import Material
 from app.main import app
 from app.models import Item, Runsheet, Sample, StepProcess, User
@@ -17,130 +20,71 @@ from tests.utils.utils import get_superuser_token_headers
 
 
 @pytest.fixture(scope="session", autouse=True)
-def db() -> Generator[Session, None, None]:
+def setup_db():
     with Session(engine) as session:
         init_db(session)
+
+        user = session.exec(
+            select(User).where(User.email == settings.FIRST_SUPERUSER)
+        ).first()
+
+        if not user:
+            user = User(
+                email=settings.FIRST_SUPERUSER,
+                hashed_password=get_password_hash(
+                    settings.FIRST_SUPERUSER_PASSWORD
+                ),
+                is_active=True,
+                is_superuser=True,
+            )
+            session.add(user)
+            session.commit()
+
+
+@pytest.fixture(scope="function", autouse=True)
+def override_get_db(db: Session):
+    def _get_db_override():
+        yield db
+
+    app.dependency_overrides[get_db] = _get_db_override
+    yield
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def db() -> Generator[Session, None, None]:
+    connection = engine.connect()
+    transaction = connection.begin()
+
+    session = Session(bind=connection)
+
+    try:
         yield session
-        statement = delete(Item)
-        session.execute(statement)
-        statement = delete(User)
-        session.execute(statement)
-        session.commit()
+    finally:
+        session.close()
+        transaction.rollback()
+        connection.close()
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="session")
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as c:
         yield c
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def superuser_token_headers(client: TestClient) -> dict[str, str]:
     return get_superuser_token_headers(client)
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def normal_user_token_headers(client: TestClient, db: Session) -> dict[str, str]:
     return authentication_token_from_email(
         client=client, email=settings.EMAIL_TEST_USER, db=db
     )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def superuser_id(db: Session) -> uuid.UUID:
-    user = User(
-        name="Superuser",
-        email=f"superuser_{uuid.uuid4().hex}@test.com",
-        is_superuser=True,
-        is_active=True,
-        is_reviewer=True,
-        hashed_password="fake",
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = get_user_by_email(session=db, email=settings.FIRST_SUPERUSER)
     return user.id
-
-
-@pytest.fixture(scope="module")
-def reviewer_user_id(db: Session) -> uuid.UUID:
-    user = User(
-        name="Reviewer User",
-        email=f"reviewer_user_{uuid.uuid4().hex}@test.com",
-        is_superuser=False,
-        is_active=True,
-        is_reviewer=True,
-        hashed_password="fake",
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user.id
-
-
-@pytest.fixture(scope="module")
-def basic_user_id(db: Session) -> uuid.UUID:
-    user = User(
-        name="Basic User",
-        email=f"basic_user_{uuid.uuid4().hex}@test.com",
-        is_superuser=False,
-        is_active=True,
-        is_reviewer=False,
-        hashed_password="fake",
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user.id
-
-
-@pytest.fixture(scope="module")
-def runsheet(db: Session, basic_user_id):
-    runsheet_in = RunsheetCreate(
-        material=Material.silicon,
-        description="Initial description",
-    )
-    return create_runsheet(
-        db=db,
-        runsheet_in=runsheet_in,
-        creator_id=basic_user_id,
-    )
-
-
-@pytest.fixture(scope="module")
-def step_process(db: Session, runsheet, basic_user_id):
-    step_process = StepProcess(
-        runsheet_id=runsheet.id,
-        creator_id=basic_user_id,
-        step_number=1,
-        title="Step Process Test",
-        details="Step process 1",
-    )
-    db.add(step_process)
-    db.commit()
-    db.refresh(step_process)
-    return step_process
-
-
-@pytest.fixture(scope="module")
-def sample(db: Session, basic_user_id):
-    sample = Sample(
-        citic_id="251222-001",
-        name="Sample A",
-        creator_id=basic_user_id,
-    )
-    db.add(sample)
-    db.commit()
-    db.refresh(sample)
-    return sample
-
-
-@pytest.fixture(scope="module")
-def runsheet_with_links(db: Session, runsheet_in, sample, reviewer_user_id):
-    runsheet = db.get(Runsheet, runsheet_in.id)
-    runsheet.reviewer_id = reviewer_user_id
-    runsheet.samples.append(sample)
-    db.add(runsheet)
-    db.commit()
-    db.refresh(runsheet)
-    return runsheet
