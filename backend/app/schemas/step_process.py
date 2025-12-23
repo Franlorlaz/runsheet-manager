@@ -21,17 +21,13 @@ class StepProcessCreate(SQLModel):
     date_completed: datetime | None = Field(default=None)
     engineer_id: uuid.UUID | None = Field(default=None)
 
-    step_number: int = Field(default=0)
-    runsheet_id: uuid.UUID = Field(foreign_key="runsheet.id", nullable=False, ondelete="CASCADE")
-    creator_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
-
 
 # Properties to receive via API on update
 class StepProcessUpdate(SQLModel):
-    title: str | None
-    details: str | None
-    system: StepSystem | None
-    machine_time: float | None
-    engineer_time: float | None
-    date_completed: datetime | None
-    engineer_id: uuid.UUID | None
+    title: str | None = None
+    details: str | None = None
+    system: StepSystem | None = None
+    machine_time: float | None = None
+    engineer_time: float | None = None
+    date_completed: datetime | None = None
+    engineer_id: uuid.UUID | None = None

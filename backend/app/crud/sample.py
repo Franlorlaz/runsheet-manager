@@ -35,8 +35,6 @@ def generate_citic_id(*, db: Session) -> str:
     return str(upgrade_str_counter(existing_citic_ids, prefix=date_prefix))
 
 
-# TODO: Revisa estas funciones + Haz lo Tests
-
 # Basic CRUD
 
 def create_sample(*, db: Session, sample_in: SampleCreate, creator_id: uuid.UUID, parent_sample_id: uuid.UUID | None) -> Sample:

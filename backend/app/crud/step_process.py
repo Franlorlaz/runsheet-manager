@@ -7,8 +7,6 @@ from app.schemas.step_process import StepProcessCreate, StepProcessUpdate
 from app.utils import upgrade_str_counter
 
 
-# TODO: Funciones por hacer + Tests
-
 # Basic CRUD
 
 def create_step_process(*, db: Session, step_process_in: StepProcessCreate, creator_id: uuid.UUID, runsheet_id: uuid.UUID | None, step_number: int | None = None) -> StepProcess:
@@ -43,6 +41,8 @@ def delete_step_process(*, db: Session, db_step_process: StepProcess) -> None:
     db.delete(db_step_process)
     db.commit()
 
+
+# TODO: Funciones por hacer + Tests
 
 # Attach Relationships
 
