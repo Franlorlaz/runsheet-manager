@@ -2,10 +2,19 @@ import uuid
 
 from sqlmodel import Session, select
 
-from app.crud.sample import generate_citic_id, create_sample, delete_sample, update_sample
-from app.models import Sample
+from app.crud.sample import (
+    attach_supervisors_to_sample,
+    create_sample,
+    delete_sample,
+    detach_supervisors_from_sample,
+    generate_citic_id,
+    replace_supervisors_of_sample,
+    update_sample,
+)
+from app.models import Sample, User
 from app.schemas.sample import SampleCreate, SampleUpdate
 from tests.utils.sample import citic_id_current_prefix, create_basic_sample
+from tests.utils.user import create_random_user
 
 
 # citic_id GENERATION
@@ -226,3 +235,141 @@ def test_delete_sample_cascades(db: Session, superuser_id: uuid.UUID) -> None:
     # assert db.get(User, reviewer_id) is not None  # TODO: Fix this
     assert db.get(User, creator_id) is not None
     """
+
+
+# ATTACH RELATIONSHIPS
+
+def test_attach_supervisors_to_sample(db: Session, superuser_id: uuid.UUID):
+    user = db.get(User, superuser_id)
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+    updated = attach_supervisors_to_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+    assert len(sample.supervisors) == 1
+    assert sample.supervisors[0].id == superuser_id
+    assert user in updated.supervisors
+
+
+def test_attach_supervisors_does_not_duplicate(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+
+    # Primera vez
+    attach_supervisors_to_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+
+    # Segunda vez (mismo supervisor)
+    attach_supervisors_to_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+
+    db.refresh(sample)
+
+    assert len(sample.supervisors) == 1
+
+
+def test_attach_supervisors_ignores_invalid_ids(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+    fake_id = uuid.uuid4()
+
+    attach_supervisors_to_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[fake_id],
+    )
+
+    db.refresh(sample)
+
+    assert sample.supervisors == []
+
+
+def test_replace_supervisors_of_sample(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+    user1 = create_random_user(db)
+    user2 = create_random_user(db)
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[user1.id, user2.id],
+    )
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+
+    db.refresh(sample)
+
+    assert len(sample.supervisors) == 1
+    assert sample.supervisors[0].id == superuser_id
+
+
+def test_replace_supervisors_with_empty_list_clears_all(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[],
+    )
+
+    db.refresh(sample)
+
+    assert sample.supervisors == []
+
+
+def test_detach_supervisors_from_sample(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+    user1 = create_random_user(db)
+    user2 = create_random_user(db)
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id, user1.id, user2.id],
+    )
+
+    detach_supervisors_from_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[user1.id, user2.id],
+    )
+
+    db.refresh(sample)
+
+    assert len(sample.supervisors) == 1
+    assert sample.supervisors[0].id == superuser_id
+
+
+def test_detach_supervisors_ignores_invalid_ids(db: Session, superuser_id: uuid.UUID):
+    sample = create_basic_sample(db=db, creator_id=superuser_id, parent_sample_id=None)
+
+    replace_supervisors_of_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[superuser_id],
+    )
+
+    detach_supervisors_from_sample(
+        db=db,
+        db_sample=sample,
+        supervisor_ids=[uuid.uuid4()],
+    )
+
+    db.refresh(sample)
+
+    assert len(sample.supervisors) == 1

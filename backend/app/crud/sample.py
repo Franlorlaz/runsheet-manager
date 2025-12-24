@@ -1,6 +1,8 @@
 import uuid
 from datetime import datetime
 
+from sqlalchemy import cast
+from sqlalchemy.dialects.postgresql import UUID
 from sqlmodel import Session, select
 
 from app.models import Sample, User
@@ -71,8 +73,65 @@ def delete_sample(*, db: Session, db_sample: Sample) -> None:
 
 # Attach Relationships
 
-def attach_supervisors_to_sample() -> Sample:
-    pass
+def attach_supervisors_to_sample(*, db: Session, db_sample: Sample, supervisor_ids: list[uuid.UUID]) -> Sample:
+    if not supervisor_ids:
+        return db_sample
+
+    # Obtener usuarios válidos
+    supervisors = db.exec(
+        select(User).where(cast(User.id, UUID).in_(supervisor_ids))
+    ).all()
+
+    if not supervisors:
+        return db_sample
+
+    # Evitar duplicados
+    existing_ids = {user.id for user in db_sample.supervisors}
+
+    for supervisor in supervisors:
+        if supervisor.id not in existing_ids:
+            db_sample.supervisors.append(supervisor)
+
+    db.add(db_sample)
+    db.commit()
+    db.refresh(db_sample)
+
+    return db_sample
+
+
+def replace_supervisors_of_sample(*, db: Session, db_sample: Sample, supervisor_ids: list[uuid.UUID]) -> Sample:
+    supervisors = db.exec(
+        select(User).where(cast(User.id, UUID).in_(supervisor_ids))
+    ).all()
+
+    db_sample.supervisors = list(supervisors)
+
+    db.add(db_sample)
+    db.commit()
+    db.refresh(db_sample)
+
+    return db_sample
+
+
+def detach_supervisors_from_sample(*, db: Session, db_sample: Sample, supervisor_ids: list[uuid.UUID]) -> Sample:
+    if not supervisor_ids:
+        return db_sample
+
+    # Filtrar supervisores actualmente asociados que deban eliminarse
+    supervisors_to_remove = [
+        supervisor
+        for supervisor in db_sample.supervisors
+        if supervisor.id in supervisor_ids
+    ]
+
+    for supervisor in supervisors_to_remove:
+        db_sample.supervisors.remove(supervisor)
+
+    db.add(db_sample)
+    db.commit()
+    db.refresh(db_sample)
+
+    return db_sample
 
 
 # Special Functions
