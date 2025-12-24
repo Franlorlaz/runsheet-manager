@@ -41,6 +41,15 @@ def generate_citic_id(*, db: Session) -> str:
 
 def create_sample(*, db: Session, sample_in: SampleCreate, creator_id: uuid.UUID, parent_sample_id: uuid.UUID | None) -> Sample:
     sample_data = sample_in.model_dump(exclude_unset=True)
+
+    creator = db.get(User, creator_id)
+    if not creator:
+        raise Exception("create_sample() - creator_id does not exist in DB")
+    
+    parent_sample = db.get(Sample, parent_sample_id)
+    if parent_sample_id and not parent_sample:
+        raise Exception("create_sample() - parent_sample_id does not exist in DB")
+    
     auto_update = {
         "creator_id": creator_id,
         "citic_id": generate_citic_id(db=db),
